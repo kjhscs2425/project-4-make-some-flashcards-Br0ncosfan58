@@ -11,7 +11,7 @@ A3: A hat trick
 
 2. How many times will you show each flashcard the first time the user runs your flashcards program?
 
-Each card will be shown once when the program is run for the first time as their will be no data/
+Each card will be shown once when the program is run for the first time as their will be no data
 
 3. How will the number of times you show each flashcard change the second time the user runs the program, based on their performance the previous time?
 
