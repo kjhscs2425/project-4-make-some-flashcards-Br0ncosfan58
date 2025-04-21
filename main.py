@@ -1,5 +1,14 @@
 import random
 import json
+import os
+
+if os.path.exists("data.json"):
+    with open("data.json", "r") as f:
+        last_data = json.load(f)
+    print("Previous session summary:")
+    print(f"Score: {last_data['score']}")
+    print(f"Accuracy: {last_data['accuracy']:.1f}%")
+    print(f"Questions Asked: {last_data['asked']}\n")
 
 
 def save_data(score, accuracy, asked):
@@ -17,18 +26,36 @@ def print_all_past_performance():
     for question, wrongs in stats.items():
         print(f"{question}: {wrongs} wrong")
 
+stats = {}
 
 def save_stats(stats):
     with open("stats.json", "w") as f:
         json.dump(stats, f, indent=4)
 
-print(f"Summary of past session:")
-    print(f"Your score: {score}")
-    print(f"Your accuracy: {accuracy:.1f}%")
-    print(f"Questions asked: {asked}")
+def flashcards(flashcard_set, stats):
+    score = 0
+    asked = 0
+    questions = list(flashcard_set.keys())
+    weighted_questions = questions + [q for q in stats if q in flashcard_set for _ in range(stats[q])]
+    random.shuffle(weighted_questions)
+    incorrect_questions = []
+    for question in questions:
+        response = input(question + " ")
+        if response.lower().strip() == flashcard_set[question].lower().strip():
+            print("Correct! ✅")
+            score += 1
+        else:
+            print("Wrong! ❌")
+            incorrect_questions.append(question)
+        asked += 1
+        accuracy = (score / asked) * 100
+        print(f"Your score is {score}")
+        print(f"Your accuracy is {accuracy:.1f}%\n")
 
-print_all_past_performance()
+    for question in incorrect_questions:
+        stats[question] = stats.get(question, 0) + 1
 
+    return score, accuracy, asked
 
 flashcards_easy= {
     "How many teams make it to March Madness?": "68", 
@@ -69,10 +96,7 @@ for randomquestion in randomquestions:
 
 save_data(score, accuracy, asked)
 
-#with open("data.json", "r") as f:
-    #json.load(f)
-
-#  _________________________________________________________________________
+#_________________________________________________________________________________
 
 flashcards_hard= {
     "What teams have won the last 5 World Series (2020-2024)?": "dodgers, braves, astros, rangers, dodgers",
@@ -91,29 +115,11 @@ hardquestions= list(flashcards_hard.keys())
 
 randomquestions= random.sample(hardquestions, k=len(flashcards_hard))
 
-score = 0
-accuracy = 1
-asked = 0
-for randomquestion in randomquestions:
-    response=input(randomquestion)
-    if response == flashcards_hard[randomquestion]:
-        print("Correct! ✅")
-        score= score+1
-        asked=asked+1
-        accuracy=(score/asked)*100
-        print(f"""Your score is {score}""")
-        print(f"""Your accuracy is {accuracy}%""")
-    else:
-        print("Wrong! ❌")
-        asked=asked+1
-        accuracy=(score/asked)*100
-        print(f"""Your score is {score}""")
-        print(f"""Your accuracy is {accuracy}%""")
-
-score, accuracy, asked = flashcards(flashcards_easy)
+score, accuracy, asked = flashcards(flashcards_easy, stats)
 save_data(score, accuracy, asked)
 
-score, accuracy, asked = flashcards(flashcards_hard)
+score, accuracy, asked = flashcards(flashcards_hard, stats)
 save_data(score, accuracy, asked)
 
 save_stats(stats)
+print_all_past_performance()
